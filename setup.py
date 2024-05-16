@@ -14,3 +14,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from setuptools import setup, find_packages
+
+setup(name='ArgumentParserUtils',
+      version='0.0.1',
+      description="ArgumentParserUtils provides Utilities and helpers for Python's ArgumentParser.",
+      author='NigelB',
+      author_email='nigel.blair@gmail.com',
+      packages=find_packages(),
+      zip_safe=False,
+      install_requires=[],
+      entry_points={
+          "console_scripts": [
+          ]
+      },
+      )
