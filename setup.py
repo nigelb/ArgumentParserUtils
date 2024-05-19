@@ -24,7 +24,10 @@ setup(name='ArgumentParserUtils',
       author_email='nigel.blair@gmail.com',
       packages=find_packages(),
       zip_safe=False,
-      install_requires=[],
+      install_requires=[
+            "paho_mqtt[mqtt]",
+            "pyserial[serial]"
+      ],
       entry_points={
           "console_scripts": [
           ]

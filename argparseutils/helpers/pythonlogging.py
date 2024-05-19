@@ -18,8 +18,8 @@
 
 import logging
 
-import argparse
-from argparseutils.helpers.utils import __get_env__
+
+from argparseutils.helpers.utils import __get_env__, fix_formatter_class
 
 
 class LoggingHelper:
@@ -27,11 +27,13 @@ class LoggingHelper:
     debug_def_fmt = "%(asctime)-15s %(process)-8d %(levelname)-7s %(name)s File \"%(pathname)s\", line %(lineno)d, in %(funcName)s - %(message)s"
 
     @classmethod
-    def add_parse_options(cls, parser, env=None):
+    def add_parser_options(cls, parser, env=None):
+        fix_formatter_class(parser)
+
         if env is not None:
             env = {key: value.value for (key, value) in env.items()}
         _add_log_level("TRACE", 5)
-        parser.formatter_class = argparse.ArgumentDefaultsHelpFormatter
+
         parser.add_argument("--log-level", default=__get_env__("LOG_LEVEL", 'INFO', env=env),
                             choices=logging._nameToLevel.keys(), help="The log level to use.")
 
