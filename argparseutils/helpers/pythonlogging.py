@@ -38,11 +38,11 @@ class LoggingHelper:
                             choices=logging._nameToLevel.keys(), help="The log level to use.")
 
     @classmethod
-    def init_logging(cls, args, format=def_fmt):
-        logging.basicConfig(
-            format=format,
-            level=logging._nameToLevel[args.log_level]
-        )
+    def init_logging(cls, args, format=def_fmt, filename=None):
+        kwargs = dict(format=format, level=logging._nameToLevel[args.log_level],)
+        if filename is not None:
+            kwargs["filename"] = filename
+        logging.basicConfig(**kwargs)
 
 
 def _add_log_level(name, level):
