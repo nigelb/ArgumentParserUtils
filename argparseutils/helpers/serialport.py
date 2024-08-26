@@ -77,7 +77,7 @@ class SerialHelper:
         return True
 
     @classmethod
-    def create_serial(cls, args, shard=""):
+    def create_serial_kwargs(cls, args, shard=""):
         get_shard_registry().validate_shard(cls, shard)
 
         args = get_args(args, shard)
@@ -94,9 +94,14 @@ class SerialHelper:
             inter_byte_timeout=args.inter_byte_timeout,
         )
         if os.name == 'posix':
-            kwargs['exclusive'] = args.exclusive,
+            kwargs['exclusive'] = args.exclusive
+        
+        return kwargs
 
-        port = Serial(**kwargs)
+    
+    @classmethod
+    def create_serial(cls, args, shard=""):
+        port = Serial(**cls.create_serial_kwargs(args, shard))
         port.args = args
         return port
 
