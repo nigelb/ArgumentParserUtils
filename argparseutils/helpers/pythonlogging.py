@@ -19,7 +19,7 @@
 import logging
 
 
-from argparseutils.helpers.utils import __get_env__, fix_formatter_class
+from argparseutils.helpers.utils import __get_env__, fix_formatter_class, add_env_parser_options, handle_env_display
 
 
 class LoggingHelper:
@@ -29,6 +29,7 @@ class LoggingHelper:
     @classmethod
     def add_parser_options(cls, parser, env=None):
         fix_formatter_class(parser)
+        add_env_parser_options(parser)
 
         if env is not None:
             env = {key: value.value for (key, value) in env.items()}
@@ -39,6 +40,7 @@ class LoggingHelper:
 
     @classmethod
     def init_logging(cls, args, format=def_fmt, filename=None):
+        handle_env_display(args)
         kwargs = dict(format=format, level=logging._nameToLevel[args.log_level],)
         if filename is not None:
             kwargs["filename"] = filename

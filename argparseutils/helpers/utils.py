@@ -20,7 +20,7 @@ import sys
 from collections import defaultdict
 from functools import lru_cache
 from typing import Any
-from argparse import ArgumentDefaultsHelpFormatter
+from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 
 
 def __get_env__(var_name: str, default: object, type: type = str, shard: str = "", env=None) -> object:
@@ -34,8 +34,12 @@ def __get_env__(var_name: str, default: object, type: type = str, shard: str = "
     :param env: The dictionary to look for `var_name` in
     :return: The found value or `default`
     """
+
     if len(shard.strip()) > 0:
         var_name = "%s_%s" % (shard.upper(), var_name.upper())
+    
+    get_environment_registry().register_env(var_name)
+    
     if env is not None and var_name in env:
         return type(env[var_name].value)
     elif var_name in os.environ:
@@ -113,3 +117,43 @@ class ShardRegistry:
 @lru_cache
 def get_shard_registry():
     return ShardRegistry()
+
+
+class EnvRegistry:
+    def __init__(self):
+        self.known_params = defaultdict(int)
+
+    def register_env(self, env_name):
+        self.known_params[env_name] += 1
+        
+    def get_known_env_params(self):
+        env_param_list = list(self.known_params.keys())
+        env_param_list.sort()
+        return env_param_list
+
+    def display(self):
+        print()
+        print(f"Known Environment Variables: {' '.join(self.get_known_env_params())}")
+        print()
+        sys.exit(0)
+
+
+@lru_cache
+def get_environment_registry():
+    return EnvRegistry()
+
+@lru_cache
+def get_known_parsers():
+    return {}
+
+def add_env_parser_options(parser: ArgumentParser):
+    known_parsers = get_known_parsers()
+    if parser not in known_parsers:
+        parser.add_argument('-e', '--environment', default=False, action='store_true', 
+        help="Displays the known ENVIRONMENT variables that are used as default parser options.")
+        known_parsers[parser] = True
+
+def handle_env_display(args):
+    if 'environment' in args and args.environment:
+        get_environment_registry().display()
+

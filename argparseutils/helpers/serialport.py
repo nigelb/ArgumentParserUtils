@@ -22,7 +22,8 @@ from serial import Serial
 from serial.serialutil import FIVEBITS, SIXBITS, SEVENBITS, EIGHTBITS, PARITY_NONE, PARITY_EVEN, PARITY_ODD, \
     PARITY_MARK, PARITY_SPACE, STOPBITS_ONE, STOPBITS_ONE_POINT_FIVE, STOPBITS_TWO
 
-from argparseutils.helpers.utils import get_shard_values, __get_env__, fix_formatter_class, get_args, get_shard_registry
+from argparseutils.helpers.utils import get_shard_values, __get_env__, fix_formatter_class, get_args, \
+    get_shard_registry, add_env_parser_options, handle_env_display
 
 
 class SerialHelper:
@@ -39,41 +40,43 @@ class SerialHelper:
         cli_shard, help_shard = get_shard_values(shard)
         fix_formatter_class(parser)
         get_shard_registry().register_shard(cls, shard)
+        add_env_parser_options(parser)
 
         parser.add_argument(f"--{cli_shard}port", default=__get_env__("PORT", "localhost", shard=shard),
                             help=f"The Serial port to connect to. {help_shard}")
-        parser.add_argument(f"--{cli_shard}baudrate", default=__get_env__("baudrate", 9600, shard=shard), type=int,
+        parser.add_argument(f"--{cli_shard}baudrate", default=__get_env__("BAUDRATE", 9600, shard=shard), type=int,
                             help=f"The Serial port baudrate to use. {help_shard}")
-        parser.add_argument(f"--{cli_shard}bytesize", default=__get_env__("bytesize", EIGHTBITS, shard=shard),
+        parser.add_argument(f"--{cli_shard}bytesize", default=__get_env__("BYTESIZE", EIGHTBITS, shard=shard),
                             choices=[FIVEBITS, SIXBITS, SEVENBITS, EIGHTBITS], type=int,
                             help=f"The number of bits for each byte. {help_shard}")
-        parser.add_argument(f"--{cli_shard}parity", default=__get_env__("parity", "None", shard=shard),
+        parser.add_argument(f"--{cli_shard}parity", default=__get_env__("PARITY", "None", shard=shard),
                             choices=cls.parity_map.keys(), help=f"The parity algorithm to use. {help_shard}")
-        parser.add_argument(f"--{cli_shard}stopbits", default=__get_env__("stopbits", STOPBITS_ONE, shard=shard),
+        parser.add_argument(f"--{cli_shard}stopbits", default=__get_env__("STOPBITS", STOPBITS_ONE, shard=shard),
                             choices=[STOPBITS_ONE, STOPBITS_ONE_POINT_FIVE, STOPBITS_TWO], type=Decimal,
                             help=f"The number of stop bits to use. {help_shard}")
-        parser.add_argument(f"--{cli_shard}timeout", default=__get_env__("timeout", None, shard=shard), type=Decimal,
+        parser.add_argument(f"--{cli_shard}timeout", default=__get_env__("TIMEOUT", None, shard=shard), type=Decimal,
                             help=f"The read timeout to use (seconds). {help_shard}")
-        parser.add_argument(f"--{cli_shard}xonxoff", default=__get_env__("xonxoff", False, shard=shard), type=bool,
+        parser.add_argument(f"--{cli_shard}xonxoff", default=__get_env__("XONXOFF", False, shard=shard), type=bool,
                             choices=[True, False], help=f"Use software flow control. {help_shard}")
-        parser.add_argument(f"--{cli_shard}rtscts", default=__get_env__("rtscts", False, shard=shard), type=bool,
+        parser.add_argument(f"--{cli_shard}rtscts", default=__get_env__("RTSCTS", False, shard=shard), type=bool,
                             choices=[True, False], help=f"Use RTS/CTS hardware flow control. {help_shard}")
         parser.add_argument(f"--{cli_shard}write-"
-                            f"timeout", default=__get_env__("write_timeout", None, shard=shard),
+                            f"timeout", default=__get_env__("WRITE_TIMEOUT", None, shard=shard),
                             type=Decimal, help=f"The write timeout to use (seconds). {help_shard}")
-        parser.add_argument(f"--{cli_shard}dsrdtr", default=__get_env__("dsrdtr", False, shard=shard), type=bool,
+        parser.add_argument(f"--{cli_shard}dsrdtr", default=__get_env__("DSRDTR", False, shard=shard), type=bool,
                             choices=[True, False], help=f"Use DSR/DTR hardware flow control. {help_shard}")
         parser.add_argument(f"--{cli_shard}inter_byte_timeout",
-                            default=__get_env__("inter-byte-timeout", None, shard=shard), type=Decimal,
+                            default=__get_env__("INTER_BYTE_TIMEOUT", None, shard=shard), type=Decimal,
                             help=f"The inter byte timeout to use. Disabled by default. {help_shard}")
 
         if os.name == 'posix':
-            parser.add_argument(f"--{cli_shard}exclusive", default=__get_env__("exclusive", None, shard=shard),
+            parser.add_argument(f"--{cli_shard}exclusive", default=__get_env__("EXCLUSIVE", None, shard=shard),
                                 type=bool, choices=[True, False],
                                 help=f"Open the serial port in exclusive mode. {help_shard}")
 
     @classmethod
     def validate_args(cls, args, shard=""):
+        handle_env_display(args)
         return True
 
     @classmethod
@@ -101,6 +104,7 @@ class SerialHelper:
     
     @classmethod
     def create_serial(cls, args, shard=""):
+        handle_env_display(args)
         port = Serial(**cls.create_serial_kwargs(args, shard))
         port.args = args
         return port
