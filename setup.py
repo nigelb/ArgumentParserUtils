@@ -25,9 +25,13 @@ setup(name='ArgumentParserUtils',
       packages=find_packages(),
       zip_safe=False,
       install_requires=[
-            "paho_mqtt[mqtt]",
-            "pyserial[serial]"
       ],
+      extras_require =
+      {
+            "mqtt": ["paho_mqtt"],
+            "serial": ["pyserial"],
+            "modbus": ["pymodbus"]
+      },
       entry_points={
           "console_scripts": [
           ]
