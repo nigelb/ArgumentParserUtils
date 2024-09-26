@@ -23,7 +23,7 @@ from argparseutils.helpers.utils import __get_env__, fix_formatter_class, get_sh
 from pymodbus import FramerType
 from pymodbus.client import ModbusSerialClient
 from serial.serialutil import EIGHTBITS, FIVEBITS, SIXBITS, SEVENBITS, STOPBITS_ONE, STOPBITS_ONE_POINT_FIVE, \
-    STOPBITS_TWO
+    STOPBITS_TWO, PARITY_NONE, PARITY_EVEN, PARITY_ODD, PARITY_MARK, PARITY_SPACE
 
 parity_map = {
     "None": PARITY_NONE,
