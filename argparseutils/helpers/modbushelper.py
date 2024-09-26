@@ -25,7 +25,13 @@ from pymodbus.client import ModbusSerialClient
 from serial.serialutil import EIGHTBITS, FIVEBITS, SIXBITS, SEVENBITS, STOPBITS_ONE, STOPBITS_ONE_POINT_FIVE, \
     STOPBITS_TWO
 
-from testing.modbus.pyro import parity_map
+parity_map = {
+    "None": PARITY_NONE,
+    "Even": PARITY_EVEN,
+    "Odd": PARITY_ODD,
+    "Mark": PARITY_MARK,
+    "Space": PARITY_SPACE
+}
 
 
 class ModbusSerialHelper:
