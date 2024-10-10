@@ -97,15 +97,23 @@ class SerialHelper:
             bytesize=args.bytesize,
             parity=cls.parity_map[args.parity],
             stopbits=cls.stopbit_map[args.stopbits],
-            timeout=args.timeout,
             xonxoff=args.xonxoff,
             rtscts=args.rtscts,
-            write_timeout=args.write_timeout,
             dsrdtr=args.dsrdtr,
-            inter_byte_timeout=args.inter_byte_timeout,
         )
+
+        if args.timeout is not None:
+            kwargs['timeout'] = args.timeout
+
+        if args.write_timeout is not None:
+            kwargs['write_timeout'] = args.write_timeout
+
+        if args.inter_byte_timeout is not None:
+            kwargs['inter_byte_timeout'] = args.inter_byte_timeout
+
         if os.name == 'posix':
-            kwargs['exclusive'] = args.exclusive
+            if args.exclusive is not None:
+                kwargs['exclusive'] = args.exclusive
         
         return kwargs
 
