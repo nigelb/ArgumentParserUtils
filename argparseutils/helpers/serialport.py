@@ -24,7 +24,7 @@ from serial.serialutil import FIVEBITS, SIXBITS, SEVENBITS, EIGHTBITS, PARITY_NO
     PARITY_MARK, PARITY_SPACE, STOPBITS_ONE, STOPBITS_ONE_POINT_FIVE, STOPBITS_TWO
 
 from argparseutils.helpers.utils import get_shard_values, __get_env__, fix_formatter_class, get_args, \
-    get_shard_registry, add_env_parser_options, handle_env_display
+    get_shard_registry, add_env_parser_options, handle_env_display, boolify
 
 
 class SerialHelper:
@@ -64,13 +64,13 @@ class SerialHelper:
                             help=f"The number of stop bits to use. {help_shard}")
         parser.add_argument(f"--{cli_shard}timeout", default=__get_env__("TIMEOUT", kwargs.get("timeout", None), shard=shard), type=Decimal,
                             help=f"The read timeout to use (seconds). {help_shard}")
-        parser.add_argument(f"--{cli_shard}xonxoff", default=__get_env__("XONXOFF", kwargs.get("xonxoff", False), shard=shard), type=bool,
+        parser.add_argument(f"--{cli_shard}xonxoff", default=__get_env__("XONXOFF", kwargs.get("xonxoff", False), shard=shard), type=boolify,
                             choices=[True, False], help=f"Use software flow control. {help_shard}")
-        parser.add_argument(f"--{cli_shard}rtscts", default=__get_env__("RTSCTS", kwargs.get("rtscts", False), shard=shard), type=bool,
+        parser.add_argument(f"--{cli_shard}rtscts", default=__get_env__("RTSCTS", kwargs.get("rtscts", False), shard=shard), type=boolify,
                             choices=[True, False], help=f"Use RTS/CTS hardware flow control. {help_shard}")
         parser.add_argument(f"--{cli_shard}write-timeout", default=__get_env__("WRITE_TIMEOUT", kwargs.get("write-timeout", None), shard=shard),
                             type=Decimal, help=f"The write timeout to use (seconds). {help_shard}")
-        parser.add_argument(f"--{cli_shard}dsrdtr", default=__get_env__("DSRDTR", kwargs.get("dsrdtr", False), shard=shard), type=bool,
+        parser.add_argument(f"--{cli_shard}dsrdtr", default=__get_env__("DSRDTR", kwargs.get("dsrdtr", False), shard=shard), type=boolify,
                             choices=[True, False], help=f"Use DSR/DTR hardware flow control. {help_shard}")
         parser.add_argument(f"--{cli_shard}inter_byte_timeout",
                             default=__get_env__("INTER_BYTE_TIMEOUT", kwargs.get("inter_byte_timeout", None), shard=shard), type=Decimal,

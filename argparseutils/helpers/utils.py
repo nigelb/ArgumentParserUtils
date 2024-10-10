@@ -157,3 +157,9 @@ def handle_env_display(args):
     if 'environment' in args and args.environment:
         get_environment_registry().display()
 
+
+def boolify(value):
+    result = True
+    if value.strip().lower() == "false":
+        result = False
+    return result
