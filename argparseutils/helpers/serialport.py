@@ -49,8 +49,14 @@ class SerialHelper:
         get_shard_registry().register_shard(cls, shard)
         add_env_parser_options(parser)
 
-        parser.add_argument(f"--{cli_shard}port", 
-                            default=__get_env__("PORT", kwargs.get("port", list_ports.comports()[0].device), shard=shard),
+        default_port = None
+        known_ports = list_ports.comports()
+        if len(known_ports) > 0:
+            default_port = known_ports[0].device
+
+        parser.add_argument(f"--{cli_shard}port",
+                            default=__get_env__("PORT", kwargs.get("port", default_port), shard=shard),
+                            required=default_port is None,
                             help=f"The Serial port to connect to. {help_shard}")
         parser.add_argument(f"--{cli_shard}baudrate", default=__get_env__("BAUDRATE", kwargs.get("baudrate", 9600), shard=shard), type=int,
                             help=f"The Serial port baudrate to use. {help_shard}")
@@ -114,10 +120,10 @@ class SerialHelper:
         if os.name == 'posix':
             if args.exclusive is not None:
                 kwargs['exclusive'] = args.exclusive
-        
+
         return kwargs
 
-    
+
     @classmethod
     def create_serial(cls, args, shard=""):
         handle_env_display(args)
