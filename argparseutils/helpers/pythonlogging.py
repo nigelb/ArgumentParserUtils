@@ -27,15 +27,13 @@ class LoggingHelper:
     debug_def_fmt = "%(asctime)-15s %(process)-8d %(levelname)-7s %(name)s File \"%(pathname)s\", line %(lineno)d, in %(funcName)s - %(message)s"
 
     @classmethod
-    def add_parser_options(cls, parser, env=None):
+    def add_parser_options(cls, parser, **kwargs):
         fix_formatter_class(parser)
         add_env_parser_options(parser)
 
-        if env is not None:
-            env = {key: value.value for (key, value) in env.items()}
         _add_log_level("TRACE", 5)
 
-        parser.add_argument("--log-level", default=__get_env__("LOG_LEVEL", 'INFO', env=env),
+        parser.add_argument("--log-level", default=__get_env__("LOG_LEVEL", kwargs.get('log-level','INFO')),
                             choices=logging._nameToLevel.keys(), help="The log level to use.")
 
     @classmethod

@@ -23,7 +23,7 @@ from typing import Any
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 
 
-def __get_env__(var_name: str, default: object, type: type = str, shard: str = "", env=None) -> object:
+def __get_env__(var_name: str, default: object, type: type = str, shard: str = "") -> object:
     """
     __get_env__ Looks up the value of the field `var_name` firstly in `env` secondly in the environmental
     variables then if`var_name` it is still not found returns the `default` value
@@ -31,7 +31,6 @@ def __get_env__(var_name: str, default: object, type: type = str, shard: str = "
     :param var_name: The variable to lookup in `env` and the in the environmental variables
     :param default: If the `var_name` variable is not found, return this value
     :param type: The type to convert the found value to
-    :param env: The dictionary to look for `var_name` in
     :return: The found value or `default`
     """
 
@@ -40,9 +39,7 @@ def __get_env__(var_name: str, default: object, type: type = str, shard: str = "
     
     get_environment_registry().register_env(var_name)
     
-    if env is not None and var_name in env:
-        return type(env[var_name].value)
-    elif var_name in os.environ:
+    if var_name in os.environ:
         return type(os.environ[var_name])
     elif default is not None:
         return type(default)
