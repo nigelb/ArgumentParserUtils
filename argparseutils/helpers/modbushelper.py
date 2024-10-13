@@ -16,73 +16,64 @@
 # limitations under the License.
 
 from argparse import ArgumentParser
-from decimal import Decimal
 
-from argparseutils.helpers.utils import __get_env__, fix_formatter_class, get_shard_registry, get_shard_values, \
-    add_env_parser_options, handle_env_display
 from pymodbus import FramerType
 from pymodbus.client import ModbusSerialClient
-from serial.serialutil import EIGHTBITS, FIVEBITS, SIXBITS, SEVENBITS, STOPBITS_ONE, STOPBITS_ONE_POINT_FIVE, \
-    STOPBITS_TWO, PARITY_NONE, PARITY_EVEN, PARITY_ODD, PARITY_MARK, PARITY_SPACE
+from serial.serialutil import EIGHTBITS, FIVEBITS, SIXBITS, SEVENBITS, STOPBITS_ONE
+from serial.tools import list_ports
 
-parity_map = {
-    "None": PARITY_NONE,
-    "Even": PARITY_EVEN,
-    "Odd": PARITY_ODD,
-    "Mark": PARITY_MARK,
-    "Space": PARITY_SPACE
-}
+from argparseutils.helpers.serialport import SerialHelper
+from argparseutils.helpers.utils import add_option, fix_formatter_class, add_env_parser_options, handle_env_display, \
+    boolify
 
 
 class ModbusSerialHelper:
 
     @classmethod
-    def add_parser_options(cls, parser):
+    def add_parser_options(cls, parser, shard="", **kwargs):
         fix_formatter_class(parser)
         add_env_parser_options(parser)
 
-        parser.add_argument("--port", default=__get_env__("MODBUS_PORT", "/dev/ttyUSB0"),
-                            help="The Serial port to connect to.")
+        default_port = None
+        known_ports = list_ports.comports()
+        if len(known_ports) > 0:
+            default_port = known_ports[0].device
 
-        parser.add_argument("--framer", choices=[FramerType.RTU.value, FramerType.ASCII.value],
-                            default=__get_env__("MODBUS_FRAMER", FramerType.RTU.value), type=str,
-                            help="The modbus framer to use.")
+        add_option(parser, kwargs, name='modbus-port', author_default=default_port, shard=shard,
+                   required=default_port is None, help="The Serial port to connect to")
 
-        parser.add_argument("--baudrate", default=__get_env__("MODBUS_BAUDRATE", 9600), type=int,
-                            help="The Serial port baud rate to use.")
+        add_option(parser, kwargs, name="modbus-framer", author_default=FramerType.RTU.value,
+                   choices=[FramerType.RTU.value, FramerType.ASCII.value], help="The modbus framer to use")
 
-        parser.add_argument("--bytesize", default=__get_env__("MODBUS_BYTESIZE", EIGHTBITS),
-                            choices=[FIVEBITS, SIXBITS, SEVENBITS, EIGHTBITS], type=int,
-                            help="The number of bits for each byte.")
+        add_option(parser, kwargs, name="modbus-baudrate", author_default=9600, shard=shard,
+                   help="The Serial port baudrate to use")
 
-        parser.add_argument("--parity", default=__get_env__("MODBUS_PARITY", "None"),
-                            choices=parity_map.keys(), help=f"The parity algorithm to use.")
+        add_option(parser, kwargs, name="modbus-bytesize", author_default=EIGHTBITS, shard=shard,
+                   choices=[FIVEBITS, SIXBITS, SEVENBITS, EIGHTBITS], type=int, help="The number of bits for each byte")
 
-        parser.add_argument("--stopbits", default=__get_env__("MODBUS_STOPBITS", STOPBITS_ONE),
-                            choices=[STOPBITS_ONE, STOPBITS_ONE_POINT_FIVE, STOPBITS_TWO], type=Decimal,
-                            help="The number of stop bits to use.")
+        add_option(parser, kwargs, name="modbus-parity", author_default="None", shard=shard,
+                   choices=SerialHelper.parity_map.keys(), help="The parity algorithm to use")
 
-        parser.add_argument("--timeout", default=__get_env__("MODBUS_TIMEOUT", 10), type=float,
-                            help="The read timeout to use (seconds).")
+        add_option(parser, kwargs, name="modbus-stopbits", author_default=str(STOPBITS_ONE), shard=shard,
+                   choices=SerialHelper.stopbit_map.keys(), help="The number of stop bits to use")
 
-        parser.add_argument("--handle-local-echo", action="store_true",
-                            default=__get_env__("MODBUS_HANDLE_LOCAL_ECHO", False),
-                            help="Discard local echo from dongle.")
+        add_option(parser, kwargs, name="timeout", author_default=10, shard=shard, type=int,
+                   help="The read timeout to use (seconds)")
 
-        parser.add_argument("--broadcast-enable", action="store_true",
-                            default=__get_env__("MODBUS_BROADCAST_ENABLE", False),
-                            help="Treat modbus address 0 as a broadcast address.")
+        add_option(parser, kwargs, name="modbus-handle-local-echo", author_default=False, shard=shard, type=boolify,
+                   choices=[True, False], help="Discard local echo from dongle")
 
-        parser.add_argument("--reconnect-delay", default=__get_env__("MODBUS_RECONNECT_DELAY", 0.1), type=float,
-                            help="Minimum delay in seconds.milliseconds before reconnection")
+        add_option(parser, kwargs, name="modbus-broadcast-enable", author_default=False, shard=shard, type=boolify,
+                   choices=[True, False], help="Treat modbus address 0 as a broadcast address")
 
-        parser.add_argument("--max-reconnect-delay", default=__get_env__("MODBUS_MAX_RECONNECT_DELAY", 300.0),
-                            type=float,
-                            help="Maximum delay in seconds.milliseconds before reconnection")
+        add_option(parser, kwargs, name="modbus-reconnect-delay", author_default=0.1, shard=shard, type=float,
+                   help="Minimum delay in seconds.milliseconds before reconnection")
 
-        parser.add_argument("--retries", default=__get_env__("MODBUS_RETRIES", 3),
-                            type=float,
-                            help="Maximum delay in seconds.milliseconds before reconnection")
+        add_option(parser, kwargs, name="modbus-max-reconnect-delay", author_default=300, shard=shard, type=float,
+                   help="Maximum delay in seconds.milliseconds before reconnection")
+
+        add_option(parser, kwargs, name="modbus-retries", author_default=3, shard=shard, type=float,
+                   help="Maximum delay in seconds.milliseconds before reconnection")
 
     @classmethod
     def validate_args(cls, args):
@@ -113,7 +104,6 @@ class ModbusSerialHelper:
 
 
 if __name__ == '__main__':
-
     parser = ArgumentParser("ModbusSerialHelper_Example")
 
     ModbusSerialHelper.add_parser_options(parser)
@@ -121,4 +111,3 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     mb_client = ModbusSerialHelper.create_modbus_serial(args)
-

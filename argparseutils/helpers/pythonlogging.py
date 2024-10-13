@@ -17,9 +17,9 @@
 
 
 import logging
+from argparse import ArgumentParser, Namespace
 
-
-from argparseutils.helpers.utils import __get_env__, fix_formatter_class, add_env_parser_options, handle_env_display
+from argparseutils.helpers.utils import add_option, fix_formatter_class, add_env_parser_options, handle_env_display
 
 
 class LoggingHelper:
@@ -27,19 +27,21 @@ class LoggingHelper:
     debug_def_fmt = "%(asctime)-15s %(process)-8d %(levelname)-7s %(name)s File \"%(pathname)s\", line %(lineno)d, in %(funcName)s - %(message)s"
 
     @classmethod
-    def add_parser_options(cls, parser, **kwargs):
+    def add_parser_options(cls, parser: ArgumentParser, **kwargs):
         fix_formatter_class(parser)
         add_env_parser_options(parser)
 
         _add_log_level("TRACE", 5)
 
-        parser.add_argument("--log-level", default=__get_env__("LOG_LEVEL", kwargs.get('log-level','INFO')),
-                            choices=logging._nameToLevel.keys(), help="The log level to use.")
+        # parser.add_argument("--log-level", default=__get_env__("LOG_LEVEL", kwargs.get('log_level', 'INFO')),
+        #                     choices=logging._nameToLevel.keys(), help="The log level to use.")
+        add_option(parser, kwargs, name="log-level", author_default='INFO', choices=logging._nameToLevel.keys(),
+                   help="The log level to use.")
 
     @classmethod
-    def init_logging(cls, args, format=def_fmt, filename=None):
+    def init_logging(cls, args: Namespace, format=def_fmt, filename=None):
         handle_env_display(args)
-        kwargs = dict(format=format, level=logging._nameToLevel[args.log_level],)
+        kwargs = dict(format=format, level=logging._nameToLevel[args.log_level], )
         if filename is not None:
             kwargs["filename"] = filename
         logging.basicConfig(**kwargs)

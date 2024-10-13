@@ -23,7 +23,7 @@ from typing import Any
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 
 
-def __get_env__(var_name: str, default: object, type: type = str, shard: str = "") -> object:
+def __get_env__(var_name: str, default: object = None, type: type = str, shard: str = "") -> object:
     """
     __get_env__ Looks up the value of the field `var_name` firstly in `env` secondly in the environmental
     variables then if`var_name` it is still not found returns the `default` value
@@ -40,11 +40,11 @@ def __get_env__(var_name: str, default: object, type: type = str, shard: str = "
     get_environment_registry().register_env(var_name)
     
     if var_name in os.environ:
-        return type(os.environ[var_name])
+        return True, type(os.environ[var_name])
     elif default is not None:
-        return type(default)
+        return True, type(default)
 
-    return None
+    return False, None
 
 
 class CliShardWrapper:
@@ -156,7 +156,76 @@ def handle_env_display(args):
 
 
 def boolify(value):
+    if type(value) == bool:
+        return value
     result = True
     if value.strip().lower() == "false":
         result = False
     return result
+
+def convert_name(name: str) -> str:
+    return name.replace("-", "_")
+
+def get_env_name(name: str) -> str:
+    return convert_name(name).upper()
+
+def add_option(parser: ArgumentParser, user_kwargs, **kwargs ):
+    shard = kwargs.get("shard", "")
+    cli_shard, help_shard = get_shard_values(shard)
+
+    opt_args = []
+    opt_kwargs = {}
+    name = None
+    if 'short' in kwargs:
+        opt_args.append(f"-{kwargs['short']}")
+    if 'name' in kwargs:
+        name = kwargs['name']
+        opt_args.append(f"--{cli_shard}{kwargs['name']}")
+    else:
+        raise Exception("add_option function expected a name kwarg")
+    if 'required' in kwargs:
+        opt_kwargs['required'] = kwargs['required']
+    if 'help' in kwargs:
+        opt_kwargs['help'] = f"{kwargs['help']}. {help_shard}"
+    if 'choices' in kwargs:
+        opt_kwargs['choices'] = kwargs['choices']
+    if 'type' in kwargs:
+        opt_kwargs['type'] = kwargs['type']
+
+    has_author_default_default = False
+    author_default = None
+    if 'author_default' in kwargs:
+        author_default = kwargs['author_default']
+        has_author_default_default = True
+
+    has_user_default = False
+    user_default = None
+    if name in user_kwargs:
+        has_user_default = True
+        user_default = user_kwargs[name]
+    elif convert_name(name) in user_kwargs:
+        has_user_default = True
+        user_default = user_kwargs[convert_name(name)]
+
+    genv = dict(shard=shard)
+    if has_author_default_default:
+        genv['default'] = author_default
+
+    if has_user_default:
+        genv['default'] = user_default
+
+    if 'type' in kwargs:
+        genv['type'] = kwargs['type']
+
+
+    has_default, default =__get_env__(get_env_name(name), **genv)
+
+    if has_default:
+        opt_kwargs['default'] = default
+
+
+    parser.add_argument(*opt_args, **opt_kwargs)
+
+
+
+

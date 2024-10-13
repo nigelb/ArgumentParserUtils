@@ -20,43 +20,50 @@ import ssl
 import paho.mqtt.client as mqtt_client
 from paho.mqtt.enums import CallbackAPIVersion
 
-from argparseutils.helpers.utils import CliShardWrapper, __get_env__, get_shard_values, fix_formatter_class, get_args, \
+from argparseutils.helpers.utils import add_option, boolify, fix_formatter_class, get_args, \
     get_shard_registry, add_env_parser_options, handle_env_display
 
 
 class MQTTClientHelper:
 
     @classmethod
-    def add_parser_options(cls, parser, mqtt_client_id, shard=""):
-        cli_shard, help_shard = get_shard_values(shard)
+    def add_parser_options(cls, parser, mqtt_client_id, shard="", **kwargs):
+
         fix_formatter_class(parser)
         get_shard_registry().register_shard(cls, shard)
         add_env_parser_options(parser)
 
-        parser.add_argument("--%smqtt-host" % cli_shard, default=__get_env__("MQTT_HOST", "localhost", shard=shard),
-                            help="The MQTT server hostname to connect to%s." % help_shard)
-        parser.add_argument("--%smqtt-port" % cli_shard, default=__get_env__("MQTT_PORT", 1883, type=int, shard=shard),
-                            type=int, help="The MQTT Server port on connect to%s." % help_shard)
-        parser.add_argument("--%smqtt-ssl" % cli_shard, action="store_true",
-                            help="Use SSL when connecting to the MQTT server%s." % help_shard)
-        parser.add_argument("--%smqtt-client-id" % cli_shard,
-                            default=__get_env__("MQTT_CLIENT_ID", mqtt_client_id, shard=shard),
-                            help="The MQTT Client Id to use on the connection%s." % help_shard)
-        parser.add_argument("--%smqtt-keepalive" % cli_shard,
-                            default=__get_env__("MQTT_KEEPALIVE", 60, type=int, shard=shard), type=int,
-                            help="The MQTT connection keepalive%s." % help_shard)
-        parser.add_argument("--%smqtt-username" % cli_shard, default=__get_env__("MQTT_USERNAME", None, shard=shard),
-                            help="The MQTT Username to connect with%s." % help_shard)
-        parser.add_argument("--%smqtt-password" % cli_shard, default=__get_env__("MQTT_PASSWORD", None, shard=shard),
-                            help="The MQTT Password to connect with%s." % help_shard)
-        parser.add_argument("--%smqtt-transport" % cli_shard, default=__get_env__("MQTT_TRANSPORT", 'tcp', shard=shard),
-                            choices=['tcp', 'websockets'],
-                            help="The MQTT Transport to use with the connection%s." % help_shard)
-        parser.add_argument("--%smqtt-clean-session" % cli_shard, default=__get_env__("MQTT_CLEAN_SESSION", True, shard=shard), type=bool,
-                            help="If False, the client is a persistent client and subscription information and queued " \
-                                 "messages will be retained when the client disconnects%s." % help_shard)
-        parser.add_argument("--%smqtt-ws-path" % cli_shard, default=__get_env__("MQTT_WS_PATH", '/mqtt/', shard=shard),
-                            help="The MQTT Websocket path%s." % help_shard)
+        add_option(parser, kwargs, name="mqtt-host", author_default="localhost", shard=shard,
+                   help="The MQTT server hostname to connect to")
+
+        add_option(parser, kwargs, name="mqtt-port", author_default=1883, shard=shard, type=int,
+                   help="The MQTT Server port on connect to")
+
+        add_option(parser, kwargs, name="mqtt-ssl", author_default=False, shard=shard, type=boolify,
+                   choices=[True, False], help="Use SSL when connecting to the MQTT server")
+
+        add_option(parser, kwargs, name="mqtt-client-id", author_default=mqtt_client_id, shard=shard,
+                   help="The MQTT Client Id to use on the connection")
+
+        add_option(parser, kwargs, name="mqtt-keepalive", author_default=60, shard=shard, type=int,
+                   help="The MQTT connection keepalive")
+
+        add_option(parser, kwargs, name="mqtt-username", author_default=None, shard=shard,
+                   help="The MQTT Username to connect with")
+
+        add_option(parser, kwargs, name="mqtt-password", author_default=None, shard=shard,
+                   help="The MQTT Password to connect with")
+
+        add_option(parser, kwargs, name="mqtt-transport", author_default="tcp", shard=shard,
+                   choices=['tcp', 'websockets'], help="The MQTT Transport to use with the connection")
+
+        add_option(parser, kwargs, name="mqtt-clean-session", author_default=True, shard=shard, type=boolify,
+                   choices=[True, False],
+                   help="If False, the client is a persistent client and subscription information and queued " \
+                                 "messages will be retained when the client disconnects")
+
+        add_option(parser, kwargs, name="mqtt-ws-path", author_default="/mqtt/", shard=shard,
+                   help="The MQTT Websocket path")
 
     @classmethod
     def validate_args(cls, args, shard=""):
