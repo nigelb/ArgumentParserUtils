@@ -185,9 +185,12 @@ def add_option(parser: ArgumentParser, user_kwargs, **kwargs ):
     opt_args = []
     opt_kwargs = {}
     name = None
-    if 'short' in kwargs and not is_shard:
-        opt_args.append(f"-{kwargs['short']}")
-        logger.warning("")
+    if 'short' in kwargs:
+        if not is_shard:
+            opt_args.append(f"-{kwargs['short']}")
+        else:
+            parser.logger.warning(f"Ignoring short {kwargs['short']}, due to sharding")
+
     if 'name' in kwargs:
         name = kwargs['name']
         opt_args.append(f"--{cli_shard}{kwargs['name']}")
