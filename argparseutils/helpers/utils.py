@@ -14,7 +14,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import logging
 import os
 import sys
 from collections import defaultdict
@@ -77,6 +77,7 @@ def get_shard_values(shard_name):
 def fix_formatter_class(parser, formatter=ArgumentDefaultsHelpFormatter):
     if not isinstance(parser.formatter_class, ArgumentDefaultsHelpFormatter):
         parser.formatter_class = ArgumentDefaultsHelpFormatter
+    add_helper_logger(parser)
 
 
 def get_args(args, shard):
@@ -143,12 +144,18 @@ def get_environment_registry():
 def get_known_parsers():
     return {}
 
+def add_helper_logger(parser):
+    if not hasattr(parser, 'logger'):
+        logger = logging.getLogger("APH")
+        setattr(parser, 'logger', logger)
+
 def add_env_parser_options(parser: ArgumentParser):
     known_parsers = get_known_parsers()
     if parser not in known_parsers:
         parser.add_argument('-e', '--environment', default=False, action='store_true', 
         help="Displays the known ENVIRONMENT variables that are used as default parser options.")
         known_parsers[parser] = True
+    add_helper_logger(parser)
 
 def handle_env_display(args):
     if 'environment' in args and args.environment:
@@ -172,12 +179,15 @@ def get_env_name(name: str) -> str:
 def add_option(parser: ArgumentParser, user_kwargs, **kwargs ):
     shard = kwargs.get("shard", "")
     cli_shard, help_shard = get_shard_values(shard)
+    is_shard = len(shard.strip()) > 0
+    is_required = False
 
     opt_args = []
     opt_kwargs = {}
     name = None
-    if 'short' in kwargs:
+    if 'short' in kwargs and not is_shard:
         opt_args.append(f"-{kwargs['short']}")
+        logger.warning("")
     if 'name' in kwargs:
         name = kwargs['name']
         opt_args.append(f"--{cli_shard}{kwargs['name']}")
@@ -185,6 +195,7 @@ def add_option(parser: ArgumentParser, user_kwargs, **kwargs ):
         raise Exception("add_option function expected a name kwarg")
     if 'required' in kwargs:
         opt_kwargs['required'] = kwargs['required']
+        is_required = True
     if 'help' in kwargs:
         opt_kwargs['help'] = f"{kwargs['help']}. {help_shard}"
     if 'choices' in kwargs:
@@ -222,6 +233,11 @@ def add_option(parser: ArgumentParser, user_kwargs, **kwargs ):
 
     if has_default:
         opt_kwargs['default'] = default
+
+        # If the option is required, and we have loaded a default from the environment
+        # we do not need to enforce required.
+        if is_required:
+            opt_kwargs['required'] = False
 
 
     parser.add_argument(*opt_args, **opt_kwargs)
