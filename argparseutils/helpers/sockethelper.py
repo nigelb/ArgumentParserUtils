@@ -37,7 +37,7 @@ class SocketHelper:
         add_env_parser_options(parser)
         add_option(parser, kwargs, name="address", author_default="0.0.0.0", shard=shard,
                    help="The IP address to bind to")
-        add_option(parser, kwargs, name="port", author_default=8080, typ=int, shard=shard,
+        add_option(parser, kwargs, name="port", author_default=8080, type=int, shard=shard,
                    help="The port address to bind to")
 
     @classmethod
