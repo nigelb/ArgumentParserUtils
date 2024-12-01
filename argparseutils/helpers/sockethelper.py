@@ -17,9 +17,15 @@
 
 import os
 from argparse import ArgumentParser, Namespace
-
+from dataclasses import dataclass
 from argparseutils.helpers.utils import fix_formatter_class, get_args, \
     get_shard_registry, add_env_parser_options, handle_env_display, boolify, add_option
+
+@dataclass
+class SocketConfig:
+    address: str
+    port: int
+
 
 class SocketHelper:
 
@@ -31,5 +37,10 @@ class SocketHelper:
         add_env_parser_options(parser)
         add_option(parser, kwargs, name="address", author_default="0.0.0.0", shard=shard,
                    help="The IP address to bind to")
-        add_option(parser, kwargs, name="port", author_default="8080", shard=shard,
+        add_option(parser, kwargs, name="port", author_default=8080, typ=int, shard=shard,
                    help="The port address to bind to")
+
+    @classmethod
+    def get_socket_config(cls, args, shard="http"):
+        shard_args = get_args(args, shard)
+        return SocketConfig(address=shard_args.address, port=shard_args.port)
