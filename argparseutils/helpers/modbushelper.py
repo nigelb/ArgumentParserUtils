@@ -57,7 +57,7 @@ class ModbusSerialHelper:
         add_option(parser, kwargs, name="modbus-stopbits", author_default=str(STOPBITS_ONE), shard=shard,
                    choices=SerialHelper.stopbit_map.keys(), help="The number of stop bits to use")
 
-        add_option(parser, kwargs, name="timeout", author_default=10, shard=shard, type=int,
+        add_option(parser, kwargs, name="modbus-timeout", author_default=10, shard=shard, type=int,
                    help="The read timeout to use (seconds)")
 
         add_option(parser, kwargs, name="modbus-handle-local-echo", author_default=False, shard=shard, type=boolify,
@@ -84,17 +84,17 @@ class ModbusSerialHelper:
     def create_modbus_serial(cls, args):
         handle_env_display(args)
         kwargs = dict(
-            port=args.port,
-            framer=FramerType(args.framer),
-            baudrate=args.baudrate,
-            bytesize=args.bytesize,
-            parity=args.parity,
-            stopbits=args.stopbits,
-            timeout=args.timeout,
-            handle_local_echo=args.handle_local_echo,
-            reconnect_delay=args.reconnect_delay,
-            reconnect_delay_max=args.max_reconnect_delay,
-            retries=args.retries,
+            port=args.modbus_port,
+            framer=FramerType(args.modbus_framer),
+            baudrate=args.modbus_baudrate,
+            bytesize=args.modbus_bytesize,
+            parity=args.modbus_parity,
+            stopbits=args.modbus_stopbits,
+            timeout=args.modbus_timeout,
+            handle_local_echo=args.modbus_handle_local_echo,
+            reconnect_delay=args.modbus_reconnect_delay,
+            reconnect_delay_max=args.modbus_max_reconnect_delay,
+            retries=args.modbus_retries,
 
         )
 
