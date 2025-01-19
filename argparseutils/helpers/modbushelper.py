@@ -45,7 +45,7 @@ class ModbusSerialHelper:
         add_option(parser, kwargs, name="modbus-framer", author_default=FramerType.RTU.value,
                    choices=[FramerType.RTU.value, FramerType.ASCII.value], help="The modbus framer to use")
 
-        add_option(parser, kwargs, name="modbus-baudrate", author_default=9600, shard=shard,
+        add_option(parser, kwargs, name="modbus-baudrate", author_default=9600, shard=shard, type=int,
                    help="The Serial port baudrate to use")
 
         add_option(parser, kwargs, name="modbus-bytesize", author_default=EIGHTBITS, shard=shard,
@@ -54,7 +54,7 @@ class ModbusSerialHelper:
         add_option(parser, kwargs, name="modbus-parity", author_default="None", shard=shard,
                    choices=SerialHelper.parity_map.keys(), help="The parity algorithm to use")
 
-        add_option(parser, kwargs, name="modbus-stopbits", author_default=str(STOPBITS_ONE), shard=shard,
+        add_option(parser, kwargs, name="modbus-stopbits", author_default=str(STOPBITS_ONE), shard=shard, type=int,
                    choices=SerialHelper.stopbit_map.keys(), help="The number of stop bits to use")
 
         add_option(parser, kwargs, name="modbus-timeout", author_default=10, shard=shard, type=int,
@@ -83,6 +83,7 @@ class ModbusSerialHelper:
     @classmethod
     def create_modbus_serial(cls, args):
         handle_env_display(args)
+        args.modbus_parity = SerialHelper.parity_map[args.modbus_parity]
         kwargs = dict(
             port=args.modbus_port,
             framer=FramerType(args.modbus_framer),
@@ -111,3 +112,4 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     mb_client = ModbusSerialHelper.create_modbus_serial(args)
+
