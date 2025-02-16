@@ -23,8 +23,7 @@ from serial.serialutil import EIGHTBITS, FIVEBITS, SIXBITS, SEVENBITS, STOPBITS_
 from serial.tools import list_ports
 
 from argparseutils.helpers.serialport import SerialHelper
-from argparseutils.helpers.utils import add_option, fix_formatter_class, add_env_parser_options, handle_env_display, \
-    boolify
+from argparseutils.helpers.utils import add_option, fix_formatter_class, boolify
 
 
 class ModbusSerialHelper:
@@ -32,7 +31,6 @@ class ModbusSerialHelper:
     @classmethod
     def add_parser_options(cls, parser, shard="", **kwargs):
         fix_formatter_class(parser)
-        add_env_parser_options(parser)
 
         default_port = None
         known_ports = list_ports.comports()
@@ -77,12 +75,10 @@ class ModbusSerialHelper:
 
     @classmethod
     def validate_args(cls, args):
-        handle_env_display(args)
         return True
 
     @classmethod
     def create_modbus_serial(cls, args):
-        handle_env_display(args)
         args.modbus_parity = SerialHelper.parity_map[args.modbus_parity]
         kwargs = dict(
             port=args.modbus_port,

@@ -19,6 +19,7 @@ import os
 import sys
 from collections import defaultdict
 from functools import lru_cache
+from io import StringIO
 from typing import Any
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 
@@ -74,9 +75,20 @@ def get_shard_values(shard_name):
     return cli_shard, help_shard
 
 
-def fix_formatter_class(parser, formatter=ArgumentDefaultsHelpFormatter):
-    if not isinstance(parser.formatter_class, ArgumentDefaultsHelpFormatter):
-        parser.formatter_class = ArgumentDefaultsHelpFormatter
+class APUHelpFormatter(ArgumentDefaultsHelpFormatter):
+
+    def display_env_args(self, *args):
+        return get_environment_registry().get_help()
+
+    def format_help(self):
+        self._root_section.items.append((lambda *args: self.display_env_args(*args), []))
+        help = super().format_help()
+        return help
+
+
+def fix_formatter_class(parser, formatter=APUHelpFormatter):
+    if not isinstance(parser.formatter_class, APUHelpFormatter):
+        parser.formatter_class = APUHelpFormatter
     add_helper_logger(parser)
 
 
@@ -129,11 +141,18 @@ class EnvRegistry:
         env_param_list.sort()
         return env_param_list
 
-    def display(self):
-        print()
-        print(f"Known Environment Variables: {' '.join(self.get_known_env_params())}")
-        print()
-        sys.exit(0)
+    def display(self, prefix="", stream=sys.stdout, call_exit=True):
+        print(file=stream)
+        print(f"{prefix}Known Environment Variables: {' '.join(self.get_known_env_params())}", file=stream)
+        print(file=stream)
+        if call_exit:
+            sys.exit(0)
+
+    def get_help(self):
+        stream = StringIO()
+        print("environment variables:", file=stream)
+        self.display(prefix='\t', stream=stream, call_exit=False)
+        return stream.getvalue()
 
 
 @lru_cache
@@ -149,17 +168,17 @@ def add_helper_logger(parser):
         logger = logging.getLogger("APH")
         setattr(parser, 'logger', logger)
 
-def add_env_parser_options(parser: ArgumentParser):
-    known_parsers = get_known_parsers()
-    if parser not in known_parsers:
-        parser.add_argument('-e', '--environment', default=False, action='store_true', 
-        help="Displays the known ENVIRONMENT variables that are used as default parser options.")
-        known_parsers[parser] = True
-    add_helper_logger(parser)
+# def add_env_parser_options(parser: ArgumentParser):
+    # known_parsers = get_known_parsers()
+    # if parser not in known_parsers:
+    #     parser.add_argument('-e', '--environment', default=False, action='store_true',
+    #     help="Displays the known ENVIRONMENT variables that are used as default parser options.")
+    #     known_parsers[parser] = True
+    # add_helper_logger(parser)
 
-def handle_env_display(args):
-    if 'environment' in args and args.environment:
-        get_environment_registry().display()
+# def handle_env_display(args):
+    # if 'environment' in args and args.environment:
+    #     get_environment_registry().display()
 
 
 def boolify(value):

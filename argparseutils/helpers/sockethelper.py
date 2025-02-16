@@ -15,11 +15,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-from argparse import ArgumentParser, Namespace
+from argparse import ArgumentParser
 from dataclasses import dataclass
+
 from argparseutils.helpers.utils import fix_formatter_class, get_args, \
-    get_shard_registry, add_env_parser_options, handle_env_display, boolify, add_option
+    get_shard_registry, add_option
+
 
 @dataclass
 class SocketConfig:
@@ -34,7 +35,6 @@ class SocketHelper:
 
         fix_formatter_class(parser)
         get_shard_registry().register_shard(cls, shard)
-        add_env_parser_options(parser)
         add_option(parser, kwargs, name="address", author_default="0.0.0.0", shard=shard,
                    help="The IP address to bind to")
         add_option(parser, kwargs, name="port", author_default=8080, type=int, shard=shard,

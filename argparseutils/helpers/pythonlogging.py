@@ -19,7 +19,7 @@
 import logging
 from argparse import ArgumentParser, Namespace
 
-from argparseutils.helpers.utils import add_option, fix_formatter_class, add_env_parser_options, handle_env_display
+from argparseutils.helpers.utils import add_option, fix_formatter_class
 
 
 class LoggingHelper:
@@ -29,7 +29,6 @@ class LoggingHelper:
     @classmethod
     def add_parser_options(cls, parser: ArgumentParser, **kwargs):
         fix_formatter_class(parser)
-        add_env_parser_options(parser)
 
         _add_log_level("TRACE", 5)
 
@@ -40,7 +39,6 @@ class LoggingHelper:
 
     @classmethod
     def init_logging(cls, args: Namespace, format=def_fmt, filename=None):
-        handle_env_display(args)
         kwargs = dict(format=format, level=logging._nameToLevel[args.log_level], )
         if filename is not None:
             kwargs["filename"] = filename

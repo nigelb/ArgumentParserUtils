@@ -21,7 +21,7 @@ import paho.mqtt.client as mqtt_client
 from paho.mqtt.enums import CallbackAPIVersion
 
 from argparseutils.helpers.utils import add_option, boolify, fix_formatter_class, get_args, \
-    get_shard_registry, add_env_parser_options, handle_env_display
+    get_shard_registry
 
 
 class MQTTClientHelper:
@@ -31,7 +31,6 @@ class MQTTClientHelper:
 
         fix_formatter_class(parser)
         get_shard_registry().register_shard(cls, shard)
-        add_env_parser_options(parser)
 
         add_option(parser, kwargs, name="mqtt-host", author_default="localhost", shard=shard,
                    help="The MQTT server hostname to connect to")
@@ -67,12 +66,10 @@ class MQTTClientHelper:
 
     @classmethod
     def validate_args(cls, args, shard=""):
-        handle_env_display(args)
         return True
 
     @classmethod
     def create_client(cls, args, shard=""):
-        handle_env_display(args)
         args = get_args(args, shard)
 
         client = mqtt_client.Client(

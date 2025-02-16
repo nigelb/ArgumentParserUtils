@@ -25,7 +25,7 @@ from serial.serialutil import FIVEBITS, SIXBITS, SEVENBITS, EIGHTBITS, PARITY_NO
     PARITY_MARK, PARITY_SPACE, STOPBITS_ONE, STOPBITS_ONE_POINT_FIVE, STOPBITS_TWO
 
 from argparseutils.helpers.utils import fix_formatter_class, get_args, \
-    get_shard_registry, add_env_parser_options, handle_env_display, boolify, add_option
+    get_shard_registry, boolify, add_option
 
 
 class SerialHelper:
@@ -48,7 +48,6 @@ class SerialHelper:
 
         fix_formatter_class(parser)
         get_shard_registry().register_shard(cls, shard)
-        add_env_parser_options(parser)
 
         default_port = None
         known_ports = list_ports.comports()
@@ -94,7 +93,6 @@ class SerialHelper:
 
     @classmethod
     def validate_args(cls, args: Namespace, shard=""):
-        handle_env_display(args)
         return True
 
     @classmethod
@@ -131,7 +129,6 @@ class SerialHelper:
 
     @classmethod
     def create_serial(cls, args, shard=""):
-        handle_env_display(args)
         port = Serial(**cls.create_serial_kwargs(args, shard))
         port.args = args
         return port
