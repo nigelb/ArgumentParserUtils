@@ -142,7 +142,6 @@ class EnvRegistry:
         return env_param_list
 
     def display(self, prefix="", stream=sys.stdout, call_exit=True):
-        print(file=stream)
         print(f"{prefix}Known Environment Variables: {' '.join(self.get_known_env_params())}", file=stream)
         print(file=stream)
         if call_exit:

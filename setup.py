@@ -30,7 +30,8 @@ setup(name='ArgumentParserUtils',
       {
             "mqtt": ["paho_mqtt"],
             "serial": ["pyserial"],
-            "modbus": ["pymodbus"]
+            "modbus": ["pymodbus"],
+            "mailgun": ["requests"],
       },
       entry_points={
           "console_scripts": [
