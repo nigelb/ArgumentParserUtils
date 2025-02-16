@@ -14,54 +14,42 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import logging
 from argparse import ArgumentParser
-from email import utils
 from typing import List
 
 import requests
 
+from argparseutils.helpers.util.email import EmailAddress, EmailClient
 from argparseutils.helpers.utils import fix_formatter_class, add_option, get_args
 
-class EmailAddress:
-    def __init__(self, real_name: str|None, address: str) -> None:
-        self.real_name = real_name
-        self.address = address
 
-    def __str__(self):
-        if self.real_name is None:
-            return self.address
-        return f'{self.real_name} <{self.address}>'
 
-    @classmethod
-    def from_address(cls, to_parse: str) -> 'EmailAddress':
-        real_name, address = utils.parseaddr(to_parse)
-        if len(real_name.strip()) == 0:
-            real_name = None
-        return EmailAddress(real_name, address)
-
-class MailgunClient:
+class MailgunClient(EmailClient):
+    logger = logging.getLogger("MailgunClient")
     def __init__(self, api_key, domain):
         self.api_key = api_key
         self.domain = domain
 
     def send_simple_message(self, to: List[EmailAddress], sender: EmailAddress, subject: str, body: str):
+        data = {"from": str(sender),
+                "to": [str(x) for x in to],
+                "subject": subject,
+                "text": body}
+        self.logger.debug(data)
         result = requests.post(
             f"https://api.mailgun.net/v3/{self.domain}/messages",
             auth=("api", self.api_key),
-            data={"from": str(sender),
-                "to": [str(x) for x in to],
-                "subject": subject,
-                "text": body})
+            data=data)
         return result.status_code, result.json()
 
 class MailGunHelper:
     @classmethod
-    def add_parser_options(cls, parser: ArgumentParser, shard="", **kwargs):
+    def add_parser_options(cls, parser: ArgumentParser, shard="", **user_defaults):
         fix_formatter_class(parser)
-        add_option(parser, kwargs, name="mailgun-api-key", shard=shard, required=True,
+        add_option(parser, user_defaults, name="mailgun-api-key", shard=shard, required=True,
                    help="The Mailgun API Key to use")
-        add_option(parser, kwargs, name="mailgun-domain", shard=shard, required=True,
+        add_option(parser, user_defaults, name="mailgun-domain", shard=shard, required=True,
                    help="The Mailgun domain to use")
 
     @classmethod
@@ -85,11 +73,6 @@ def main():
     client = MailGunHelper.create_client(args)
     result = client.send_simple_message(args.to, args.sender, args.subject, args.body)
     print(result)
-
-
-
-
-
 
 
 if __name__ == '__main__':
