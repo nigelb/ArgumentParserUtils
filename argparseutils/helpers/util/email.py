@@ -14,9 +14,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+from dataclasses import dataclass
 from email import utils
-from typing import List
+from typing import List, Any
 
 
 class EmailAddress:
@@ -36,6 +36,11 @@ class EmailAddress:
             real_name = None
         return EmailAddress(real_name, address)
 
+@dataclass
+class EmailStatus:
+    sent: bool
+    result: Any
+
 class EmailClient:
-    def send_simple_message(self, to: List[EmailAddress], sender: EmailAddress, subject: str, body: str):
+    def send_simple_message(self, to: List[EmailAddress], sender: EmailAddress, subject: str, body: str) -> EmailStatus:
         raise NotImplementedError("send_simple_message not implemented")

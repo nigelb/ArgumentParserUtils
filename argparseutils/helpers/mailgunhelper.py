@@ -20,7 +20,7 @@ from typing import List
 
 import requests
 
-from argparseutils.helpers.util.email import EmailAddress, EmailClient
+from argparseutils.helpers.util.email import EmailAddress, EmailClient, EmailStatus
 from argparseutils.helpers.utils import fix_formatter_class, add_option, get_args
 
 
@@ -36,12 +36,13 @@ class MailgunClient(EmailClient):
                 "to": [str(x) for x in to],
                 "subject": subject,
                 "text": body}
-        self.logger.debug(data)
+        self.logger.debug(f'Sending email: {data}')
         result = requests.post(
             f"https://api.mailgun.net/v3/{self.domain}/messages",
             auth=("api", self.api_key),
             data=data)
-        return result.status_code, result.json()
+        self.logger.info(f'Email to: {to}, subject: {subject}, sent: {result.status_code == 200}')
+        return EmailStatus(result.status_code == 200, result.json())
 
 class MailGunHelper:
     @classmethod
