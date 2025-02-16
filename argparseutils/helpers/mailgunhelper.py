@@ -32,8 +32,10 @@ class MailgunClient(EmailClient):
         self.domain = domain
 
     def send_simple_message(self, to: List[EmailAddress], sender: EmailAddress, subject: str, body: str):
-        data = {"from": str(sender),
-                "to": [str(x) for x in to],
+        _to = [str(x) for x in to]
+        _sender = str(sender)
+        data = {"from": _sender,
+                "to": _to,
                 "subject": subject,
                 "text": body}
         self.logger.debug(f'Sending email: {data}')
@@ -41,8 +43,9 @@ class MailgunClient(EmailClient):
             f"https://api.mailgun.net/v3/{self.domain}/messages",
             auth=("api", self.api_key),
             data=data)
-        self.logger.info(f'Email to: {to}, subject: {subject}, sent: {result.status_code == 200}')
-        return EmailStatus(result.status_code == 200, result.json())
+        result_msg = result.json()
+        self.logger.info(f'Email to: {_to}, subject: {subject}, sent: {result.status_code == 200}: {result_msg}')
+        return EmailStatus(result.status_code == 200, result_msg)
 
 class MailGunHelper:
     @classmethod
