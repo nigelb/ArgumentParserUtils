@@ -18,9 +18,11 @@
 
 import logging
 from argparse import ArgumentParser, Namespace
+from copy import deepcopy
+from dataclasses import dataclass, field
+from typing import Optional, List
 
 from argparseutils.helpers.utils import add_option, fix_formatter_class
-
 
 class LoggingHelper:
     def_fmt = "%(asctime)-15s %(process)-8d %(levelname)-7s %(name)s %(filename)s:%(funcName)s:%(lineno)d - %(message)s"
@@ -43,6 +45,33 @@ class LoggingHelper:
         if filename is not None:
             kwargs["filename"] = filename
         logging.basicConfig(**kwargs)
+
+    @classmethod
+    def init_logging_from_config(cls, config: 'LoggingConfig'):
+        _add_log_level("TRACE", 5)
+        logging.basicConfig(format=config.format, level=logging._nameToLevel[config.level])
+        for lg in config.logger_configs:
+            logging.getLogger(lg.name).setLevel(lg.level)
+
+@dataclass
+class LoggerConfig:
+    name: str
+    level: str
+
+@dataclass
+class LoggingConfig:
+    format: Optional[str] = LoggingHelper.def_fmt
+    level: Optional[str] = logging.getLevelName(logging.INFO)
+    logger_configs: List[LoggerConfig] = field(default_factory=list)
+
+    @staticmethod
+    def from_dict(config: dict) -> 'LoggingConfig':
+        local_copy = deepcopy(config)
+        logger_configs = []
+        if 'logger_configs' in local_copy:
+            logger_configs = [LoggerConfig(**x) for x in local_copy['logger_configs']]
+            local_copy['logger_configs'] = logger_configs
+        return LoggingConfig(**local_copy)
 
 
 def _add_log_level(name, level):
